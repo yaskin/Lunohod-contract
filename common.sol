@@ -589,10 +589,8 @@ abstract contract BEP20Mintable is BEP20 {
 
     /**
      * @dev Function to stop minting new tokens.
-     *
-     * WARNING: it allows everyone to finish minting. Access controls MUST be defined in derived contracts.
      */
-    function finishMinting() public canMint {
+    function finishMinting() public onlyOwner canMint {
         _finishMinting();
     }
 
