@@ -670,6 +670,7 @@ contract CommonBEP20 is BEP20Mintable, BEP20Burnable {
         maxAmount = initialBalance;
         _setupDecimals(decimals);
         _mint(_msgSender(), initialBalance);
+        addAllowedTransactor(_msgSender());
     }
 
     /**
