@@ -578,8 +578,6 @@ abstract contract BEP20Mintable is BEP20 {
     /**
      * @dev Function to mint tokens.
      *
-     * WARNING: it allows everyone to mint new tokens. Access controls MUST be defined in derived contracts.
-     *
      * @param account The address that will receive the minted tokens
      * @param amount The amount of tokens to mint
      */
