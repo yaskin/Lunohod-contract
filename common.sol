@@ -1,4 +1,8 @@
 /**
+ *Submitted for verification at BscScan.com on 2022-07-20
+*/
+
+/**
  *Submitted for verification at BscScan.com on 2022-07-19
 */
 
@@ -243,7 +247,7 @@ contract BEP20 is Ownable, IBEP20 {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
-    bool public swapAndLiquifyEnabled = false;
+    bool public swapAndLiquifyEnabled = true;
     uint256 public maxAmount;
 
     /**
