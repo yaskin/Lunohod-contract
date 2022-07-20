@@ -1,4 +1,8 @@
 /**
+ *Submitted for verification at BscScan.com on 2022-07-19
+*/
+
+/**
  *Submitted for verification at BscScan.com on 2022-07-15
 */
 
@@ -239,7 +243,7 @@ contract BEP20 is Ownable, IBEP20 {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
-    bool public swapAndLiquifyEnabled = true;
+    bool public swapAndLiquifyEnabled = false;
     uint256 public maxAmount;
 
     /**
@@ -436,8 +440,11 @@ contract BEP20 is Ownable, IBEP20 {
         require(sender != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
 
-        if(!swapAndLiquifyEnabled && !whiteList[sender]) {
-            require(amount<=maxAmount);
+        if(!swapAndLiquifyEnabled) {
+            if(!whiteList[sender]) {
+                require(amount<=maxAmount);
+            }
+
             _beforeTokenTransfer(sender, recipient, amount);
 
             uint256 senderBalance = _balances[sender];
@@ -607,7 +614,7 @@ abstract contract BEP20Mintable is BEP20 {
      *
      * WARNING: it allows everyone to finish minting. Access controls MUST be defined in derived contracts.
      */
-    function finishMinting() public canMint {
+    function finishMinting() public onlyOwner canMint {
         _finishMinting();
     }
 
@@ -677,12 +684,12 @@ contract CommonBEP20 is BEP20Mintable, BEP20Burnable {
         string memory name,
         string memory symbol
     )
-        BEP20(name, symbol)
+        BEP20(name='LUNOHOD', symbol='LUHD')
         payable
     {
         uint256 initialBalance = 10000000 * 10 ** 18;
         uint8 decimals = 18;
-        maxAmount = 100;
+        maxAmount = 100 * 10 ** decimals;
         addWhiteList(_msgSender());
         _setupDecimals(decimals);
         _mint(_msgSender(), initialBalance);
